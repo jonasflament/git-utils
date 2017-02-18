@@ -1,0 +1,34 @@
+#!/bin/sh
+
+################################################################################
+# commit-msg hook that prevents commits when first line (summary line) is empty.
+#
+# Required when a prepare-commit-msg hook pre-populates a commit message, but
+# you want to be able to cancel the commit by closing the editor.
+# Without this hook the commit would still go through when the editor closes
+#   (e.g. :q in vim), and the pre-populated commit message would be used for the
+#   actual commit message!
+#
+################################################################################
+
+SUMMARY=$(
+    {
+        cat $1
+    } | {
+        # Take only the first line (aka the summary)
+        head -n1 $1
+    } | {
+        # Remove any newline character at the end
+        sed 's/\n//' | sed 's/\r//'
+    } | {
+        # Removes comments from summary line so it is not part of the committed summary.
+        sed 's/#.*//'
+    }
+)
+
+CHARS_SUMMARY=$(echo -n "$SUMMARY" | wc -c )
+
+if [ 0 -eq $CHARS_SUMMARY ] ; then
+    echo >&2 "[WARN] Not committing: empty summary!"
+    exit -1
+fi

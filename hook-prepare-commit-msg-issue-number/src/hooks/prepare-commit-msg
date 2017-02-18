@@ -1,0 +1,23 @@
+#!/bin/bash
+
+################################################################################
+#
+# Prepares commit message so that it contains the issue number extracted from
+#   the branch name.
+# Issue numbers are matched against the [a-zA-Z]+-[0-9]+ regex
+#
+################################################################################
+
+FIRST_LINE=$(head -n1 $1)
+
+if [ -z "$FIRST_LINE"  ] ;then #Check that this is not an amend by checking that the first line is empty
+
+    BRANCH_NAME="$(git symbolic-ref HEAD 2>/dev/null)" ||
+    BRANCH_NAME="(unnamed branch)"     # detached HEAD
+
+    BRANCH_NAME=${BRANCH_NAME##refs/heads/}
+    
+    ISSUE_NUMBER=$(echo $BRANCH_NAME | awk -F ' ' 'match($0, /[a-zA-Z]+-[0-9]+/) { print substr($0, RSTART, RLENGTH) }' )
+    
+    sed -i "1s/^/\n\n${ISSUE_NUMBER}/" $1
+fi
