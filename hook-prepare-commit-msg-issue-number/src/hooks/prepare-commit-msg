@@ -8,6 +8,8 @@
 #
 ################################################################################
 
+DEFAULT_PATTERN='[a-zA-Z]+-[0-9]+'
+
 FIRST_LINE=$(head -n1 $1)
 
 if [ -z "$FIRST_LINE"  ] ;then #Check that this is not an amend by checking that the first line is empty
@@ -17,7 +19,11 @@ if [ -z "$FIRST_LINE"  ] ;then #Check that this is not an amend by checking that
 
     BRANCH_NAME=${BRANCH_NAME##refs/heads/}
     
-    ISSUE_NUMBER=$(echo $BRANCH_NAME | awk -F ' ' 'match($0, /[a-zA-Z]+-[0-9]+/) { print substr($0, RSTART, RLENGTH) }' )
+    ISSUE_PATTERN_CONFIG="$(git config issue.pattern)"
+
+    ISSUE_PATERN=${ISSUE_PATTERN_CONFIG:-$DEFAULT_PATTERN}
+
+    ISSUE_NUMBER=$(echo $BRANCH_NAME | awk --posix -F ' ' 'match($0, /'"$ISSUE_PATERN"'/) { print substr($0, RSTART, RLENGTH) }' )
     
     sed -i "1s/^/\n\n${ISSUE_NUMBER}/" $1
 fi
