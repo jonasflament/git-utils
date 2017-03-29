@@ -1,0 +1,17 @@
+[pullreq]
+    # Command to run with the pull request url
+    # Example (WIN): explorer will open up the pull request url in the default web browser
+    # Example: echo will simply echo the full url (useful for debugging)
+    cmd = explorer
+
+[alias]
+    #
+    # Alias to create a pull request in bitbucket
+    #
+    # Pull requests can be created with the following URL template:
+    #     https://bitbucket.org/{user}/{repo}/pull-requests/new?source={remote-branch-name}&t=1
+    #
+    # This alias relies on the pullreq.cmd variable.
+    # The pull request url will be past as first parameter after this command.
+    #
+    pullreq = ! $(git config pullreq.cmd) 'https://bitbucket.org/'"$(git remote -v | grep -F 'origin' | grep -F '(push)' | awk -F ' ' '{ print $2 }' | awk -F ':' '{ print $2}' | sed 's/.git//')"'/pull-requests/new?source='"$(git rev-parse --abbrev-ref HEAD)"'&t=1'
